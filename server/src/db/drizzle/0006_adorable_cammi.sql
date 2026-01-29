@@ -1,0 +1,1 @@
+ALTER TABLE "users" ADD CONSTRAINT "password_min_length" CHECK (length("users"."password") >= 8);
