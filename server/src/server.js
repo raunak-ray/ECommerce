@@ -3,6 +3,7 @@ import "dotenv/config";
 import loggerMiddleware from "./middleware/logger.middleware.js";
 import errorMiddleware from "./middleware/error.middleware.js";
 import authRoutes from "./routes/auth.route.js";
+import categoryRoutes from "./routes/category.route.js";
 import cookieParser from "cookie-parser";
 
 const app = express();
@@ -18,10 +19,9 @@ app.use(cookieParser());
 //logger middleware
 app.use(loggerMiddleware);
 
-
-
 //custom routes
 app.use("/api/v1/auth", authRoutes); //auth routes
+app.use("/api/v1/category", categoryRoutes);
 
 //error middleware
 app.use(errorMiddleware);
