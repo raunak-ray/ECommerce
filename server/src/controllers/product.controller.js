@@ -13,17 +13,44 @@ import {
 import getPublicIdFromUrl from "../utils/getCloudinaryPublicId.js";
 import { v2 as cloudinary } from "cloudinary";
 
-export const getAllProductController = asyncHandler(async (req, res) => {
-  const products = await getAllProduct();
+// export const getAllProductController = asyncHandler(async (req, res) => {
+//   const products = await getAllProduct();
 
-  if (!products) {
-    throw new AppError(404, "Product not found");
-  }
+//   if (!products) {
+//     throw new AppError(404, "Product not found");
+//   }
+
+//   sendResponse(res, {
+//     statusCode: 200,
+//     message: "Products fetched successfully",
+//     data: products,
+//   });
+// });
+
+export const getAllProductController = asyncHandler(async (req, res) => {
+  const page = Math.max(Number(req.query.page) || 1, 1);
+  const limit = Math.min(Number(req.query.limit) || 10, 100);
+  const offset = (page - 1) * limit;
+
+  const filters = {
+    categoryId: req.query.category,
+    minPrice: req.query.minPrice,
+    maxPrice: req.query.maxPrice,
+    search: req.query.search,
+  };
+
+  const result = await getAllProduct({ limit, offset, filters });
 
   sendResponse(res, {
     statusCode: 200,
     message: "Products fetched successfully",
-    data: products,
+    data: result.data,
+    meta: {
+      page,
+      limit,
+      total: result.total,
+      totalPages: Math.ceil(result.total / limit),
+    },
   });
 });
 
@@ -139,6 +166,10 @@ export const updateProductController = asyncHandler(async (req, res) => {
   const publicId = getPublicIdFromUrl(product.coverImage);
 
   const updatedProduct = await updateProduct(id, productId, updateData);
+
+  if (!updatedProduct) {
+    throw new AppError(400, "Nothing to update or unauthorized");
+  }
 
   await cloudinary.uploader.destroy(publicId);
 

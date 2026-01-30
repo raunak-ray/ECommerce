@@ -13,8 +13,8 @@ import upload from "../config/multer.config.js";
 const router = express.Router();
 
 router.get("/", getAllProductController);
-router.get("/:id", getProductController);
 router.get("/category/:id", getAllProductByCategoryController);
+router.get("/:id", getProductController);
 router.post(
   "/",
   protectRoutes,

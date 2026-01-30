@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { db } from "../index.js";
 import { cartTable } from "../schema/carts.schema.js";
 import { cartItemsTable } from "../schema/cartItems.schema.js";
