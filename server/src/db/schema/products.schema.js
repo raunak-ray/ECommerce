@@ -16,6 +16,10 @@ export const productTable = pgTable("products", {
   description: text().notNull(),
   price: numeric({ precision: 6, scale: 2 }).notNull(),
   stock: integer().notNull().default(0),
+  coverImage: text("cover_image")
+    .notNull()
+    .default("https://placehold.net/default.png"),
+  
   categoryId: uuid("category_id")
     .notNull()
     .references(() => categoryTable.id, { onDelete: "restrict" }),

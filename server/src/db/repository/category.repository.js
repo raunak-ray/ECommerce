@@ -11,6 +11,15 @@ export const findCategoryByName = async (name) => {
   return result[0] || null;
 };
 
+export const findCategoryById = async (id) => {
+  const result = await db
+    .select()
+    .from(categoryTable)
+    .where(eq(categoryTable.id, id));
+
+  return result[0] || null;
+};
+
 export const createCategory = async (name) => {
   const result = await db.insert(categoryTable).values({ name }).returning();
   return result[0];

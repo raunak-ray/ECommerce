@@ -57,6 +57,20 @@
       "when": 1769700552079,
       "tag": "0007_parched_red_hulk",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1769772782942,
+      "tag": "0008_zippy_madame_web",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1769774024685,
+      "tag": "0009_minor_lord_tyger",
+      "breakpoints": true
     }
   ]
 }

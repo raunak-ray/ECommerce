@@ -1,0 +1,1 @@
+ALTER TABLE "products" ADD COLUMN "coverImage" varchar(255) DEFAULT 'https://placehold.net/default.png' NOT NULL;
