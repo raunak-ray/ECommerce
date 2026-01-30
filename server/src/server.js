@@ -5,6 +5,7 @@ import errorMiddleware from "./middleware/error.middleware.js";
 import authRoutes from "./routes/auth.route.js";
 import categoryRoutes from "./routes/category.route.js";
 import productRoutes from "./routes/product.route.js";
+import cartRoutes from "./routes/cart.route.js";
 import cookieParser from "cookie-parser";
 
 const app = express();
@@ -24,6 +25,7 @@ app.use(loggerMiddleware);
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/category", categoryRoutes);
 app.use("/api/v1/product", productRoutes);
+app.use("/api/v1/cart", cartRoutes);
 
 //error middleware
 app.use(errorMiddleware);

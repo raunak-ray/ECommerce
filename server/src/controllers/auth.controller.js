@@ -30,7 +30,7 @@ export const signupUser = asyncHandler(async (req, res) => {
 
   const createdUser = await createUser({ name, email, hashedPassword });
 
-  const token = issueToken(createUser);
+  const token = issueToken(createdUser);
 
   res.cookie("token", token, cookieOption);
 
@@ -45,7 +45,7 @@ export const loginUser = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
-    throw new AppError("Email and Password are required");
+    throw new AppError(400, "Email and Password are required");
   }
 
   const user = await findUserByEmail(email);
@@ -53,7 +53,7 @@ export const loginUser = asyncHandler(async (req, res) => {
   const isPasswordCorrect = await bcrypt.compare(password, user.password);
 
   if (!isPasswordCorrect) {
-    throw new AppError("Invalid Credentials");
+    throw new AppError(401, "Invalid Credentials");
   }
 
   const token = issueToken(user);
