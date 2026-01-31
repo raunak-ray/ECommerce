@@ -32,25 +32,27 @@ export const getAllProduct = async ({ limit, offset, filters }) => {
     .select({
       id: productTable.id,
       name: productTable.name,
+      description: productTable.description,
       price: productTable.price,
       stock: productTable.stock,
       coverImage: productTable.coverImage,
+      category: {
+        id: categoryTable.id,
+        name: categoryTable.name,
+      },
+      seller: {
+        id: usersTable.id,
+        name: usersTable.name,
+      },
     })
     .from(productTable)
+    .innerJoin(categoryTable, eq(productTable.categoryId, categoryTable.id))
+    .innerJoin(usersTable, eq(productTable.sellerId, usersTable.id))
     .where(whereClause)
     .limit(limit)
     .offset(offset);
 
-  // COUNT QUERY
-  const [{ count }] = await db
-    .select({ count: sql`count(*)` })
-    .from(productTable)
-    .where(whereClause);
-
-  return {
-    data,
-    total: Number(count),
-  };
+  return data;
 };
 
 export const createProduct = async (
@@ -78,31 +80,6 @@ export const createProduct = async (
   return result[0];
 };
 
-// export const getAllProduct = async () => {
-//   const result = await db
-//     .select({
-//       id: productTable.id,
-//       name: productTable.name,
-//       description: productTable.description,
-//       price: productTable.price,
-//       stock: productTable.stock,
-//       coverImage: productTable.coverImage,
-//       category: {
-//         id: categoryTable.id,
-//         name: categoryTable.name,
-//       },
-//       seller: {
-//         id: usersTable.id,
-//         name: usersTable.name,
-//       },
-//     })
-//     .from(productTable)
-//     .innerJoin(categoryTable, eq(productTable.categoryId, categoryTable.id))
-//     .innerJoin(usersTable, eq(productTable.sellerId, usersTable.id));
-
-//   return result;
-// };
-
 export const getProduct = async (productId) => {
   const result = await db
     .select({
@@ -129,7 +106,7 @@ export const getProduct = async (productId) => {
   return result[0];
 };
 
-export const getAllProductByCategory = async (id) => {
+export const getAllProductByCategory = async ({ limit, offset, id }) => {
   const result = await db
     .select({
       category: categoryTable.name,
@@ -147,7 +124,9 @@ export const getAllProductByCategory = async (id) => {
     .from(productTable)
     .innerJoin(categoryTable, eq(productTable.categoryId, categoryTable.id))
     .innerJoin(usersTable, eq(productTable.sellerId, usersTable.id))
-    .where(eq(categoryTable.id, id));
+    .where(eq(categoryTable.id, id))
+    .limit(limit)
+    .offset(offset);
 
   return result;
 };
@@ -182,7 +161,7 @@ export const updateProduct = async (
   return result[0];
 };
 
-export const deleteProduct = async (sellerId, productId) => {
+export const deleteProduct = async (sellerId, productId, role) => {
   const result = await db
     .delete(productTable)
     .where(

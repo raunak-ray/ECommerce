@@ -8,9 +8,24 @@ import {
   updateCategory,
 } from "../db/repository/category.repository.js";
 import sendResponse from "../utils/sendResponse.js";
+import { deleteCache, getCache, setCache } from "../utils/cache.js";
 
 export const getAllCategoryController = asyncHandler(async (req, res) => {
+  const cachedKey = "categories:all";
+
+  const cachedData = await getCache(cachedKey);
+
+  if (cachedData) {
+    return sendResponse(res, {
+      statusCode: 200,
+      message: "Categories Fetched Successfully",
+      data: cachedData,
+    });
+  }
+
   const categories = await getAllCategory();
+
+  await setCache(cachedKey, categories, 600);
 
   sendResponse(res, {
     statusCode: 200,
@@ -37,6 +52,8 @@ export const createCategoryController = asyncHandler(async (req, res) => {
   }
 
   const category = await createCategory(name);
+
+  await deleteCache("categories:all");
 
   sendResponse(res, {
     statusCode: 201,
@@ -69,6 +86,8 @@ export const updateCategoryController = asyncHandler(async (req, res) => {
     throw new AppError(404, "Category not found");
   }
 
+  await deleteCache("categories:all");
+
   sendResponse(res, {
     statusCode: 200,
     message: "Category updated successfully",
@@ -94,6 +113,8 @@ export const deleteCategoryController = asyncHandler(async (req, res) => {
   if (!deletedCategory) {
     throw new AppError(400, "Error in deleting category");
   }
+
+  await deleteCache("categories:all");
 
   sendResponse(res, {
     statusCode: 200,

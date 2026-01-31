@@ -12,20 +12,12 @@ import {
 } from "../db/repository/product.repository.js";
 import getPublicIdFromUrl from "../utils/getCloudinaryPublicId.js";
 import { v2 as cloudinary } from "cloudinary";
-
-// export const getAllProductController = asyncHandler(async (req, res) => {
-//   const products = await getAllProduct();
-
-//   if (!products) {
-//     throw new AppError(404, "Product not found");
-//   }
-
-//   sendResponse(res, {
-//     statusCode: 200,
-//     message: "Products fetched successfully",
-//     data: products,
-//   });
-// });
+import {
+  deleteCache,
+  deleteCacheByPrefix,
+  getCache,
+  setCache,
+} from "../utils/cache.js";
 
 export const getAllProductController = asyncHandler(async (req, res) => {
   const page = Math.max(Number(req.query.page) || 1, 1);
@@ -39,18 +31,26 @@ export const getAllProductController = asyncHandler(async (req, res) => {
     search: req.query.search,
   };
 
+  const cacheKey = `products:${page}:${limit}:${JSON.stringify(filters)}`;
+
+  const cachedData = await getCache(cacheKey);
+
+  if (cachedData) {
+    return sendResponse(res, {
+      statusCode: 200,
+      message: "Products fetched successfully",
+      data: cachedData,
+    });
+  }
+
   const result = await getAllProduct({ limit, offset, filters });
+
+  await setCache(cacheKey, result, 300);
 
   sendResponse(res, {
     statusCode: 200,
     message: "Products fetched successfully",
-    data: result.data,
-    meta: {
-      page,
-      limit,
-      total: result.total,
-      totalPages: Math.ceil(result.total / limit),
-    },
+    data: result,
   });
 });
 
@@ -62,7 +62,25 @@ export const getAllProductByCategoryController = asyncHandler(
       throw new AppError(400, "Category id was not provided");
     }
 
-    const products = await getAllProductByCategory(id);
+    const page = Math.max(Number(req.query.page) || 1, 1);
+    const limit = Math.min(Number(req.query.limit) || 10, 100);
+    const offset = (page - 1) * limit;
+
+    const cacheKey = `category:${id}:${page}:${limit}`;
+
+    const cachedData = await getCache(cacheKey);
+
+    if (cachedData) {
+      return sendResponse(res, {
+        statusCode: 200,
+        message: "Products fetched successfully",
+        data: cachedData,
+      });
+    }
+
+    const products = await getAllProductByCategory({ limit, offset, id });
+
+    await setCache(cacheKey, products, 300);
 
     if (!products) {
       throw new AppError(404, "Product not found");
@@ -83,11 +101,25 @@ export const getProductController = asyncHandler(async (req, res) => {
     throw new AppError(400, "Product id was not provided");
   }
 
+  const cacheKey = `product:${id}`;
+
+  const cachedData = await getCache(cacheKey);
+
+  if (cachedData) {
+    return sendResponse(res, {
+      statusCode: 200,
+      message: "Products fetched successfully",
+      data: cachedData,
+    });
+  }
+
   const product = await getProduct(id);
 
   if (!product) {
     throw new AppError(404, "Product not found");
   }
+
+  await setCache(cacheKey, product, 300);
 
   sendResponse(res, {
     statusCode: 200,
@@ -131,6 +163,9 @@ export const createProductController = asyncHandler(async (req, res) => {
     coverImage,
   );
 
+  await deleteCacheByPrefix("products:");
+  await deleteCacheByPrefix("category:");
+
   sendResponse(res, {
     statusCode: 201,
     message: "Product created successfully",
@@ -173,6 +208,10 @@ export const updateProductController = asyncHandler(async (req, res) => {
 
   await cloudinary.uploader.destroy(publicId);
 
+  await deleteCache(`product:${productId}`);
+  await deleteCacheByPrefix("products:");
+  await deleteCacheByPrefix("category:");
+
   sendResponse(res, {
     statusCode: 200,
     message: "Product uploaded successfully",
@@ -192,15 +231,22 @@ export const deleteProductController = asyncHandler(async (req, res) => {
     throw new AppError(401, "Only admin and seller can delete product");
   }
 
-  const product = await deleteProduct(id, productId);
+  const product = await deleteProduct(id, productId, role);
+
+  if (!product) {
+    throw new AppError(404, "Product not found or unauthorized");
+  }
 
   const publicId = getPublicIdFromUrl(product.coverImage);
 
   await cloudinary.uploader.destroy(publicId);
 
+  await deleteCache(`product:${productId}`);
+  await deleteCacheByPrefix("products:");
+  await deleteCacheByPrefix("category:");
+
   sendResponse(res, {
     statusCode: 200,
     message: "Product deleted successfully",
-    data: product,
   });
 });
