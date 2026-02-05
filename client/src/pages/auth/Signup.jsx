@@ -13,7 +13,8 @@ import { useEffect, useState } from "react";
 
 import toast from "react-hot-toast";
 import { Link, useNavigate } from "react-router-dom";
-import useSignup from "../../hooks/auth/useSignup";
+import useSignup from "../../hooks/auth/useSignup.js";
+import { useAuthStore } from "../../store/useAuthStore.js";
 
 function Signup() {
   const [name, setName] = useState("");
@@ -41,11 +42,21 @@ function Signup() {
     handleCleanup();
   };
 
+  const user = useAuthStore((state) => state.user);
+
   useEffect(() => {
-    if (status === "success") {
-      navigate("/");
+    if (status === "success" && user && user.data) {
+      const { role } = user.data;
+
+      if (role === "admin") {
+        navigate("/admin/dashboard");
+      } else if (role === "seller") {
+        navigate("/seller/dashboard");
+      } else {
+        navigate("/");
+      }
     }
-  }, [navigate, status]);
+  }, [navigate, status, user]);
 
   return (
     <Card className="bg-card border-card w-full min-w-md text-2xl shadow-xl">

@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Link, useNavigate } from "react-router-dom";
 import { CardFooter } from "../../components/ui/card";
+import { useAuthStore } from "../../store/useAuthStore";
 
 export default function Login() {
   const { mutate: login, status } = useLogin();
@@ -23,16 +24,25 @@ export default function Login() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log(email, password, status);
 
     login({ email, password });
   };
 
+  const user = useAuthStore((state) => state.user);
+
   useEffect(() => {
-    if (status === "success") {
-      navigate("/");
+    if (status === "success" && user && user.data) {
+      const { role } = user.data;
+
+      if (role === "admin") {
+        navigate("/admin/dashboard");
+      } else if (role === "seller") {
+        navigate("/seller/dashboard");
+      } else {
+        navigate("/");
+      }
     }
-  }, [status, navigate]);
+  }, [status, navigate, user]);
 
   return (
     <Card className="w-full shadow-2xs text-3xl min-w-md border-card">
