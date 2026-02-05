@@ -7,6 +7,7 @@ import categoryRoutes from "./routes/category.route.js";
 import productRoutes from "./routes/product.route.js";
 import cartRoutes from "./routes/cart.route.js";
 import cookieParser from "cookie-parser";
+import cors from "cors";
 
 const app = express();
 
@@ -15,6 +16,12 @@ const port = process.env.PORT || 5100;
 app.use(express.static("public")); //server favicon
 app.use(express.json());
 app.use(cookieParser());
+app.use(
+  cors({
+    origin: process.env.CLIENT_URL,
+    credentials: true,
+  }),
+);
 
 // to do: add cors configuration
 
